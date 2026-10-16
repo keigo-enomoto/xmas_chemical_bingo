@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ELEMENT BINGO | 元素ビンゴ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&family=Orbitron:wght@700;900&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bubbles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div id="flash" aria-hidden="true"></div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <div class="app-container">
+    <header class="top">
+      <div>
+        <h1>ELEMENT BINGO</h1>
+        <p class="sub">元素ビンゴ ― 原子番号が当選番号</p>
+      </div>
+      <div class="top-btns">
+        <button id="muteButton" class="icon-btn" type="button" aria-pressed="false" aria-label="サウンドを消す">🔊</button>
+        <button id="fullscreenButton" class="icon-btn" type="button" aria-label="全画面表示に切り替え">⛶</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="stage" aria-label="当選番号">
+        <h2 class="sr-only">当選番号</h2>
+        <div id="currentNumber" class="tile idle" style="--c:#22D3EE">
+          <span class="bingo-col" id="tileCol"></span>
+          <span class="tile-num" id="tileNum">--</span>
+          <span class="tile-sym" id="tileSym">?</span>
+          <span class="tile-name" id="tileName">抽選を待っています</span>
+          <span class="tile-cat" id="tileCat"></span>
+        </div>
+        <div class="ring" id="ring" aria-hidden="true"></div>
+        <p id="result" class="sr-only" aria-live="polite"></p>
+      </section>
+
+      <div class="dimmable">
+        <section class="panel" aria-label="抽選設定">
+          <div class="inputs-line">
+            <label for="minNumber">最小値</label>
+            <input type="number" id="minNumber" value="1" inputmode="numeric">
+            <label for="maxNumber">最大値</label>
+            <input type="number" id="maxNumber" value="75" inputmode="numeric">
+          </div>
+          <button id="generateButton" class="primary" type="button">⚗ 抽選する</button>
+          <p id="rangeError" class="msg" role="alert"></p>
+        </section>
+
+        <section class="panel" aria-label="当選番号の追加">
+          <h2>当選番号の追加</h2>
+          <div class="manual-input">
+            <input type="number" id="manualNumber" placeholder="番号を入力" aria-label="追加する番号" inputmode="numeric">
+            <button id="addManualButton" type="button">当選番号の追加</button>
+          </div>
+          <p id="manualError" class="msg" role="alert"></p>
+        </section>
+
+        <section class="panel" aria-label="過去の当選番号">
+          <h2>過去の当選番号 <span id="counter" class="counter">0 / 75 抽選済み</span></h2>
+          <ul id="pastNumbers"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

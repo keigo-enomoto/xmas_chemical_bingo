@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LAB QUIZ | 化学クイズ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Orbitron:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 背景の泡（CSSのみ） -->
+  <div class="bg" aria-hidden="true">
+    <span style="left:8%;--s:26px;--d:14s;--w:0s"></span><span style="left:22%;--s:14px;--d:11s;--w:-4s"></span>
+    <span style="left:38%;--s:34px;--d:18s;--w:-9s"></span><span style="left:55%;--s:18px;--d:12s;--w:-2s"></span>
+    <span style="left:70%;--s:30px;--d:16s;--w:-7s"></span><span style="left:84%;--s:12px;--d:10s;--w:-5s"></span>
+    <span style="left:93%;--s:22px;--d:15s;--w:-11s"></span>
+  </div>
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div id="flash" aria-hidden="true"></div>
+
+  <!-- 進行バー（PCは左の縦レール、狭い画面は上の横バー） -->
+  <nav id="rail" aria-label="進行状況">
+    <ol id="railList"></ol>
+    <p id="railText" class="rail-text"></p>
+  </nav>
+
+  <div id="app">
+    <header class="top">
+      <h1><span class="en">LAB QUIZ</span><span class="ja">化学クイズ</span></h1>
+      <div class="tools">
+        <button type="button" id="muteBtn" class="icon-btn" aria-pressed="false" aria-label="効果音をミュートする">🔊</button>
+        <button type="button" id="fsBtn" class="icon-btn" aria-label="全画面表示に切り替える">⛶</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- 1. 待機画面 -->
+      <section id="standby" class="screen" hidden aria-label="待機画面">
+        <p id="quizTitle" class="quiz-title"></p>
+        <div class="card">
+          <div class="sweep" aria-hidden="true"></div>
+          <p class="card-en" id="cardEn">Q.1</p>
+          <p class="card-ja" id="cardJa">第1問</p>
+        </div>
+        <div id="loader" class="loader">
+          <input type="file" id="fileInput" accept=".json,application/json" aria-describedby="fileError">
+          <label for="fileInput" class="file-btn">問題ファイルを読み込む</label>
+          <div id="fileError" class="error" role="alert"></div>
+        </div>
+      </section>
+
+      <!-- 2. 問題画面 -->
+      <section id="question" class="screen" hidden aria-label="問題画面">
+        <h2 id="qText" class="band" aria-live="off"></h2>
+        <figure id="qFig" class="fig"><img id="qImg" alt=""></figure>
+        <ul id="qChoices" class="choices"></ul>
+      </section>
+
+      <!-- 3. 正解画面 -->
+      <section id="answer" class="screen" hidden aria-label="正解画面">
+        <p id="aQ" class="a-q"></p>
+        <div id="aBox" class="a-box">
+          <div id="shock" aria-hidden="true"></div>
+          <p id="aLead" class="a-lead">正解は…</p>
+          <p id="aText" class="a-text"></p>
+        </div>
+        <ul id="aChoices" class="choices"></ul>
+        <p id="aExp" class="a-exp"></p>
+      </section>
+
+      <!-- 終了画面 -->
+      <section id="end" class="screen" hidden aria-label="終了画面">
+        <p class="end-en">FINISH</p>
+        <p class="end-ja">おつかれさまでした</p>
+        <p id="endSub" class="end-sub"></p>
+      </section>
+    </main>
+
+    <div class="actions">
+      <button type="button" id="backBtn" class="btn sub">← 戻る</button>
+      <button type="button" id="nextBtn" class="btn primary">問題を表示</button>
+    </div>
+    <p class="hint">スペース / Enter / → で進む　← で戻る</p>
+  </div>
+
+  <div id="announce" class="sr-only" aria-live="polite"></div>
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
