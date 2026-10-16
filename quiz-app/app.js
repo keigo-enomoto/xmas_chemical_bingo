@@ -14,17 +14,28 @@ let typeTimer = 0;
 let revealTimer = 0;
 
 // ---------- 問題データの検証 ----------
+// 画像の許可判定：images/ などの相対パス、または data:image のみ（外部URL・絶対パス・.. は不可）
+function isSafeImage(s) {
+  if (typeof s !== 'string') return false;
+  if (/^data:/i.test(s)) return s.length <= 2000000 && /^data:image\/(png|jpe?g|gif|webp|svg\+xml)(;base64)?,/i.test(s);
+  return !!s && !/^[a-z][a-z0-9+.-]*:/i.test(s) && !/^[/\\]/.test(s) && !s.includes('\\') && !s.split('/').includes('..') && !/%2e/i.test(s); // %2e%2e（エンコードした ..）も拒否
+}
 // 問題なければ null、あればエラー文を返す
 function validate(d) {
   if (!d || typeof d !== 'object' || !Array.isArray(d.questions) || !d.questions.length) return '「questions」に1問以上の配列が必要です。';
+  if (d.questions.length > 200) return '問題数が多すぎます（200問まで）。';
+  if (typeof d.title === 'string' && d.title.length > 2000) return '「title」が長すぎます（2000文字まで）。';
   for (let i = 0; i < d.questions.length; i++) {
     const x = d.questions[i], n = `${i + 1}問目：`;
     if (!x || typeof x.question !== 'string' || !x.question.trim()) return n + '「question」（問題文）がありません。';
     if (typeof x.answer !== 'string' || !x.answer.trim()) return n + '「answer」（正解）がありません。';
+    if (x.question.length > 2000 || x.answer.length > 2000 || (typeof x.explanation === 'string' && x.explanation.length > 2000)) return n + '「question」「answer」「explanation」は2000文字までにしてください。';
     if (x.image != null && typeof x.image !== 'string') return n + '「image」は文字列で指定してください。';
+    if (x.image && !isSafeImage(x.image)) return n + '画像の指定が不正です（外部URLは使えません。images/ 内の画像か data:image を指定してください）。';
     if (x.explanation != null && typeof x.explanation !== 'string') return n + '「explanation」は文字列で指定してください。';
     if (x.choices != null) {
       if (!Array.isArray(x.choices) || x.choices.length < 2 || x.choices.length > 4 || x.choices.some((c) => typeof c !== 'string' || !c.trim())) return n + '「choices」は2〜4個の文字列の配列にしてください。';
+      if (x.choices.some((c) => c.length > 2000)) return n + '「choices」の文字列が長すぎます（2000文字まで）。';
       if (correctIndex(x) < 0) return n + '「answer」が「choices」のどれとも一致しません。';
     }
   }
@@ -190,8 +201,8 @@ function enterQuestion(instant) {
   const x = quiz.questions[q];
   showScreen('question');
   const fig = $('qFig');
-  fig.className = 'fig' + (x.image ? '' : ' none');
-  if (x.image) { $('qImg').hidden = false; $('qImg').src = x.image; void fig.offsetWidth; fig.classList.add('show'); }
+  fig.className = 'fig' + (x.image && isSafeImage(x.image) ? '' : ' none');
+  if (x.image && isSafeImage(x.image)) { $('qImg').hidden = false; $('qImg').src = x.image; void fig.offsetWidth; fig.classList.add('show'); }
   const ul = $('qChoices');
   ul.className = 'choices pre';
   ul.innerHTML = (x.choices || []).map((c, i) => `<li style="--i:${i}"><span class="ltr">${LETTERS[i]}</span><span></span></li>`).join('');
@@ -311,6 +322,9 @@ $('fileInput').addEventListener('change', (e) => {
   const err = $('fileError');
   err.textContent = '';
   if (!f) return;
+  e.target.value = '';  // 同じファイルを再選択できるように
+  if (f.size > 2 * 1024 * 1024) { err.textContent = 'ファイルが大きすぎます（2MBまで）。'; return; }
+  if (!/\.json$/i.test(f.name)) { err.textContent = '.json ファイルを選んでください。'; return; }
   const rd = new FileReader();
   rd.onload = () => {
     let d;
@@ -322,7 +336,6 @@ $('fileInput').addEventListener('change', (e) => {
   };
   rd.onerror = () => { err.textContent = 'ファイルを読み込めませんでした。'; };
   rd.readAsText(f);
-  e.target.value = '';
 });
 
 // ---------- イベント ----------
@@ -355,8 +368,8 @@ muteBtn.addEventListener('click', () => {
 const fsBtn = $('fsBtn');
 if (!document.fullscreenEnabled) fsBtn.hidden = true;
 fsBtn.addEventListener('click', () => {
-  if (document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen();
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else document.documentElement.requestFullscreen().catch(() => {});
 });
 document.addEventListener('fullscreenchange', () => {
   fsBtn.setAttribute('aria-label', document.fullscreenElement ? '全画面表示を終了する' : '全画面表示に切り替える');

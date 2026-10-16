@@ -305,8 +305,8 @@ muteBtn.addEventListener('click', () => {
 const fsBtn = $('fsBtn');
 if (!document.fullscreenEnabled) fsBtn.hidden = true;
 fsBtn.addEventListener('click', () => {
-  if (document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen();
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  else document.documentElement.requestFullscreen().catch(() => {});
 });
 document.addEventListener('fullscreenchange', () => {
   fsBtn.setAttribute('aria-label', document.fullscreenElement ? '全画面表示を終了する' : '全画面表示に切り替える');

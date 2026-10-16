@@ -39,8 +39,18 @@ let pastNumbers = [];
 let drawing = false;
 
 // ---------- 入力・エラー ----------
+const MAX_SPAN = 999; // 範囲の最大個数 (巨大な範囲でタブが固まるのを防ぐ)
+function readNum(id) { const v = $(id).value.trim(); return v === '' ? NaN : Number(v); } // 空は無効、1e2 は 100
 function readRange() {
-  return { min: parseInt($('minNumber').value), max: parseInt($('maxNumber').value) };
+  return { min: readNum('minNumber'), max: readNum('maxNumber') };
+}
+// 範囲が不正ならエラーメッセージ、正しければ ''
+function rangeProblem(min, max) {
+  if (isNaN(min) || isNaN(max)) return '最小値と最大値を数字で入力してください。';
+  if (!Number.isSafeInteger(min) || !Number.isSafeInteger(max)) return '最小値と最大値は整数で入力してください。';
+  if (min > max) return '最小値は最大値より小さくしてください。';
+  if (max - min + 1 > MAX_SPAN) return `範囲は${MAX_SPAN}個までにしてください（現在 ${max - min + 1} 個）。`;
+  return '';
 }
 function showMsg(id, text, kind = 'error') {
   const el = $(id);
@@ -71,13 +81,16 @@ function addPast(z) {
   li.className = 'newest';
   li.style.setProperty('--c', i.color);
   li.title = i.name;
-  li.innerHTML = `<span class="n">${z}</span><span class="s">${i.sym}</span>`;
+  for (const [c, t] of [['n', z], ['s', i.sym]]) {
+    const sp = document.createElement('span');
+    sp.className = c; sp.textContent = t; li.appendChild(sp);
+  }
   ul.appendChild(li);
   updateCounter();
 }
 function updateCounter() {
   const { min, max } = readRange();
-  const total = isNaN(min) || isNaN(max) || max < min ? '-' : max - min + 1;
+  const total = rangeProblem(min, max) ? '-' : max - min + 1;
   $('counter').textContent = `${pastNumbers.length} / ${total} 抽選済み`;
 }
 
@@ -104,11 +117,11 @@ function draw() {
   if (drawing) return;
   clearMsgs();
   const { min, max } = readRange();
-  if (isNaN(min) || isNaN(max)) { showMsg('rangeError', '最小値と最大値を数字で入力してください。'); return; }
-  if (min > max) { showMsg('rangeError', '最小値は最大値より小さくしてください。'); return; }
+  const bad = rangeProblem(min, max);
+  if (bad) { showMsg('rangeError', bad); return; }
   // まだ出ていない番号だけが候補
-  const pool = [];
-  for (let n = min; n <= max; n++) if (!pastNumbers.includes(n)) pool.push(n);
+  const drawn = new Set(pastNumbers), pool = [];
+  for (let n = min; n <= max; n++) if (!drawn.has(n)) pool.push(n);
   if (pool.length === 0) { showMsg('rangeError', 'すべての番号が当選しました。', 'info'); $('result').textContent = 'すべての番号が当選しました'; return; }
   const winner = pool[Math.floor(Math.random() * pool.length)];
   const rand = () => pool[Math.floor(Math.random() * pool.length)];
@@ -157,8 +170,10 @@ function addManual() {
   clearMsgs();
   const { min, max } = readRange();
   const input = $('manualNumber');
-  const n = parseInt(input.value);
-  if (isNaN(n)) return showMsg('manualError', '有効な数字を入力してください。');
+  const bad = rangeProblem(min, max);
+  if (bad) return showMsg('rangeError', bad);
+  const n = input.value.trim() === '' ? NaN : Number(input.value);
+  if (!Number.isSafeInteger(n)) return showMsg('manualError', '有効な整数を入力してください。');
   if (n < min || n > max) return showMsg('manualError', `指定範囲外です。${min}～${max}の範囲で入力してください。`);
   if (pastNumbers.includes(n)) return showMsg('manualError', 'その番号は既に当選済みです。');
   input.value = '';

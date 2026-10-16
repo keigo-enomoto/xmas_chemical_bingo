@@ -2,6 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>XMAS ELEMENT BINGO | クリスマス元素ビンゴ</title>
   <link rel="stylesheet" href="../fonts/zen-kaku-gothic-new.css">
@@ -43,9 +45,9 @@
         <section class="panel" aria-label="抽選設定">
           <div class="inputs-line">
             <label for="minNumber">最小値</label>
-            <input type="number" id="minNumber" value="1" inputmode="numeric">
+            <input type="number" id="minNumber" value="1" step="1" inputmode="numeric">
             <label for="maxNumber">最大値</label>
-            <input type="number" id="maxNumber" value="75" inputmode="numeric">
+            <input type="number" id="maxNumber" value="75" step="1" inputmode="numeric">
           </div>
           <button id="generateButton" class="primary" type="button"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 3h6M10 3v6l-5 10a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-10V3M7.5 15h9"/></svg> 抽選する</button>
           <p id="rangeError" class="msg" role="alert"></p>
@@ -54,7 +56,7 @@
         <section class="panel" aria-label="当選番号の追加">
           <h2>当選番号の追加</h2>
           <div class="manual-input">
-            <input type="number" id="manualNumber" placeholder="番号を入力" aria-label="追加する番号" inputmode="numeric">
+            <input type="number" id="manualNumber" step="1" placeholder="番号を入力" aria-label="追加する番号" inputmode="numeric">
             <button id="addManualButton" type="button">当選番号の追加</button>
           </div>
           <p id="manualError" class="msg" role="alert"></p>
