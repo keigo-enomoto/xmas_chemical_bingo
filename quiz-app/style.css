@@ -1,10 +1,16 @@
+/* 英数字フォントは同梱（オフラインでも同じ見た目） */
+@font-face { font-family: "Orbitron"; font-weight: 700; font-display: swap; src: url("fonts/orbitron-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Orbitron"; font-weight: 900; font-display: swap; src: url("fonts/orbitron-latin-900-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 500; font-display: swap; src: url("fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: swap; src: url("fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 800; font-display: swap; src: url("fonts/jetbrains-mono-latin-800-normal.woff2") format("woff2"); }
 :root {
   --bg: #07131A; --panel: rgba(14, 32, 40, 0.72); --border: #2C5560;
   --text: #F4FBFF; --muted: #A9C7D3;
   --red: #FF4D5E; --btn-red: #D42A3A; --green: #2EE59D; --gold: #FFD43D; --ice: #9BE7FF; --snow: #fff; --danger: #FF6B6B;
   --focus: #FFD43D;
-  --f-ui: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
-  --f-disp: "Orbitron", "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-ui: "Zen Kaku Gothic New", "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
+  --f-disp: "Orbitron", "Zen Kaku Gothic New", "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI", "Yu Gothic", sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   --rail: 104px;
 }
@@ -41,7 +47,8 @@ body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height
 .bg { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
 .bg span { position: absolute; top: -40px; font-size: var(--s); line-height: 1; color: #fff; opacity: .45;
   animation: fall var(--d) linear var(--w) infinite; }
-.bg span::before { content: "\2744\FE0E"; }
+.bg span::before { content: ""; display: block; width: 1em; height: 1em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9.5 3.5L12 6l2.5-2.5M9.5 20.5L12 18l2.5 2.5'/%3E%3C/svg%3E") center / contain no-repeat; }
 @keyframes fall { to { transform: translate(var(--x, 30px), 112vh) rotate(180deg); opacity: .1; } }
 
 /* パーティクルは文字より背面に置く（答えを隠さない） */
@@ -76,6 +83,8 @@ h1 .ja { font-weight: 700; font-size: 1rem; color: var(--muted); }
 .tools { display: flex; gap: 8px; }
 .icon-btn { min-width: 48px; min-height: 48px; font-size: 1.4rem; border-radius: 12px; border: 2px solid var(--border);
   background: var(--panel); color: var(--text); cursor: pointer; }
+.icon-btn svg[hidden] { display: none; }
+.icon-btn svg { display: block; margin: auto; width: 1.2em; height: 1.2em; }
 .icon-btn:hover { border-color: var(--ice); }
 
 main { flex: 1; position: relative; display: flex; flex-direction: column; padding-bottom: 96px; }
@@ -111,7 +120,7 @@ main { flex: 1; position: relative; display: flex; flex-direction: column; paddi
 #fileInput:focus-visible + .file-btn { outline: 3px solid var(--focus); outline-offset: 3px; }
 .error { color: #FF9A9A; font-weight: 700; }
 .error:not(:empty) { padding: 10px 12px; border: 2px solid var(--danger); border-radius: 10px; background: rgba(255, 107, 107, .12); }
-.error:not(:empty)::before { content: "⚠ エラー: "; }
+.error:not(:empty)::before { content: "! エラー: "; }
 
 /* 問題画面 */
 .screen#question, .screen#answer { justify-content: flex-start; }

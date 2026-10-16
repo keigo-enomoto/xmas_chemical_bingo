@@ -45,7 +45,7 @@ function readRange() {
 function showMsg(id, text, kind = 'error') {
   const el = $(id);
   el.className = 'msg ' + kind;
-  el.textContent = text ? (kind === 'error' ? '⚠ エラー: ' : 'ℹ ') + text : '';
+  el.textContent = text ? (kind === 'error' ? 'エラー: ' : '') + text : '';
 }
 function clearMsgs() { showMsg('rangeError', ''); showMsg('manualError', ''); }
 
@@ -262,7 +262,6 @@ $('muteButton').addEventListener('click', () => {
 });
 function syncMute() {
   const b = $('muteButton');
-  b.textContent = muted ? '🔇' : '🔊';
   b.setAttribute('aria-pressed', muted);
   b.setAttribute('aria-label', muted ? 'サウンドを出す' : 'サウンドを消す');
 }

@@ -341,7 +341,8 @@ window.addEventListener('resize', resize);
 
 const muteBtn = $('muteBtn');
 function updateMute() {
-  muteBtn.textContent = muted ? '🔇' : '🔊';
+  muteBtn.querySelector('.i-on').hidden = muted;
+  muteBtn.querySelector('.i-off').hidden = !muted;
   muteBtn.setAttribute('aria-pressed', muted);
   muteBtn.setAttribute('aria-label', muted ? '効果音のミュートを解除する' : '効果音をミュートする');
 }

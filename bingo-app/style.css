@@ -1,9 +1,15 @@
+/* 英数字フォントは同梱（オフラインでも同じ見た目） */
+@font-face { font-family: "Orbitron"; font-weight: 700; font-display: swap; src: url("fonts/orbitron-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Orbitron"; font-weight: 900; font-display: swap; src: url("fonts/orbitron-latin-900-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 500; font-display: swap; src: url("fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: swap; src: url("fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 800; font-display: swap; src: url("fonts/jetbrains-mono-latin-800-normal.woff2") format("woff2"); }
 :root {
   --bg: #07131A; --panel: rgba(14,32,40,.72); --border: #2C5560;
   --text: #F4FBFF; --muted: #A9C7D3;
   --red: #FF4D5E; --green: #2EE59D; --gold: #FFD43D; --ice: #9BE7FF; --snow: #FFFFFF;
   --danger: #FF8A94; --focus: #FFD43D;
-  --jp: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+  --jp: "Zen Kaku Gothic New", "Hiragino Sans", "BIZ UDPGothic", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
   --disp: "Orbitron", "Segoe UI", Arial, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
 }
@@ -21,8 +27,8 @@ body {
 }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .snow { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-.snow i { position: absolute; top: -40px; left: var(--l); font: normal var(--s)/1 sans-serif; font-variant-emoji: text;
-  color: var(--snow); opacity: var(--o); animation: fall var(--t) linear infinite; animation-delay: var(--d); }
+.snow i { position: absolute; top: -40px; left: var(--l); width: var(--s); height: var(--s); background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round'><path d='M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9.5 4L12 6.5 14.5 4M9.5 20l2.5-2.5 2.5 2.5'/></svg>") center / contain no-repeat;
+  opacity: var(--o); animation: fall var(--t) linear infinite; animation-delay: var(--d); }
 @keyframes fall { to { transform: translate(var(--x), 110vh) rotate(360deg); } }
 body::after { content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 56px; pointer-events: none; z-index: 0;
   background: radial-gradient(60px 28px at 10% 100%, rgba(255,255,255,.4), transparent), radial-gradient(90px 34px at 38% 100%, rgba(255,255,255,.35), transparent),
@@ -81,14 +87,14 @@ input::placeholder { color: var(--muted); font-family: var(--jp); }
 .tile { --c: #9BE7FF; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
   width: min(100%, 560px); min-height: 40vh; padding: 16px; text-align: center; border-radius: 20px;
   border: 4px solid var(--c); background:
-    linear-gradient(90deg, transparent 84%, #FFD43D 84%, #E8B400 87%, #FFD43D 90%, transparent 90%),
+    linear-gradient(90deg, transparent 83%, #FFD43D 83%, #E8B400 87%, #FFD43D 91%, transparent 91%),
     linear-gradient(160deg, rgba(14,32,40,.95), #06141A);
   box-shadow: 0 0 32px color-mix(in srgb, var(--c) 60%, transparent), inset 0 0 40px color-mix(in srgb, var(--c) 18%, transparent); }
 .tile::before { content: ""; position: absolute; top: -16px; left: 6%; right: 32%; height: 34px; pointer-events: none;
   background: linear-gradient(#fff, #fff) 0 0 / 100% 20px no-repeat, radial-gradient(circle at 24px 20px, #fff 11px, transparent 12px),
     radial-gradient(circle at 45% 20px, #fff 14px, transparent 15px), radial-gradient(circle at 78% 20px, #fff 10px, transparent 11px);
   border-radius: 12px 12px 0 0; filter: drop-shadow(0 0 6px rgba(255,255,255,.5)); }
-.tile::after { content: "🎀"; position: absolute; top: -28px; right: 10%; font-size: 2.5rem; line-height: 1; pointer-events: none; }
+.tile::after { content: ""; position: absolute; --bw: clamp(5.5rem, 10vw, 9rem); width: var(--bw); height: calc(var(--bw) * .8); top: calc(var(--bw) * -.5); right: calc(13% - var(--bw) / 2); z-index: 2; filter: drop-shadow(0 0 8px rgba(255,77,94,.6)); background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 32'><path d='M20 18C10 2 1 6 3 16s12 6 17 2zM20 18c10-16 19-12 17-2s-12 6-17 2z' fill='%23FF4D5E' stroke='%23FFD43D' stroke-width='1.5' stroke-linejoin='round'/><path d='M20 18l-6 12M20 18l6 12' stroke='%23FF4D5E' stroke-width='3' stroke-linecap='round'/><circle cx='20' cy='18' r='4' fill='%23FFD43D'/></svg>") center / contain no-repeat; pointer-events: none; }
 .tile-num { font: 800 clamp(5rem, 24vh, 13rem)/1 var(--mono); font-variant-numeric: tabular-nums;
   color: #fff; text-shadow: 0 0 24px var(--c); }
 .tile-sym { font: 900 clamp(2rem, 7vh, 4rem)/1.1 var(--disp); color: var(--c); }
@@ -129,3 +135,10 @@ body.drawing .dimmable { opacity: .4; }
   .tile.pop, #pastNumbers li.newest { animation: fade .3s; }
   @keyframes fade { from { opacity: 0; } }
 }
+
+.ico { width: 1em; height: 1em; vertical-align: -.12em; }
+.icon-btn svg { width: 1.4rem; height: 1.4rem; display: block; margin: 0 auto; }
+#muteButton[aria-pressed="true"] .on, #muteButton[aria-pressed="false"] .off { display: none; }
+.msg::before { display: inline-block; width: 1.3em; height: 1.3em; margin-right: .5em; border-radius: 50%; border: 2px solid currentColor; text-align: center; font: 900 .8em/1.1 var(--disp); }
+.msg.error::before { content: "!"; }
+.msg.info::before { content: "i"; }
