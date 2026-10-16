@@ -4,10 +4,10 @@ const NAMES = '水素 ヘリウム リチウム ベリリウム ホウ素 炭素
 
 // 分類: [名前, 色]
 const CATS = {
-  alkali: ['アルカリ金属', '#FF6B6B'], alkaline: ['アルカリ土類', '#FFC933'], trans: ['遷移金属', '#22D3EE'],
-  post: ['貧金属', '#9FB4FF'], metalloid: ['半金属', '#39FF88'], nonmetal: ['非金属', '#7CFFB2'],
-  halogen: ['ハロゲン', '#FF4DDB'], noble: ['貴ガス', '#C58BFF'], lan: ['ランタノイド', '#FF9F43'],
-  act: ['アクチノイド', '#FF7AA8'], unknown: ['未知元素', '#E8F1FF'],
+  alkali: ['アルカリ金属', '#FF4D5E'], alkaline: ['アルカリ土類', '#FFD43D'], trans: ['遷移金属', '#9BE7FF'],
+  post: ['貧金属', '#B8C4FF'], metalloid: ['半金属', '#2EE59D'], nonmetal: ['非金属', '#9DFFD0'],
+  halogen: ['ハロゲン', '#FF8FD0'], noble: ['貴ガス', '#FFFFFF'], lan: ['ランタノイド', '#FF9A3D'],
+  act: ['アクチノイド', '#E6B98A'], unknown: ['未知元素', '#B0BEC5'],
 };
 const inSet = (z, s) => s.includes(z);
 function category(z) {
@@ -166,7 +166,7 @@ function addManual() {
   reveal(n);
 }
 
-// ---------- パーティクル (分子風の円と結合) ----------
+// ---------- パーティクル (雪の結晶・星・オーナメント) ----------
 const cv = $('fx'), ctx = cv.getContext('2d');
 let parts = [], fxRunning = false;
 function resize() {
@@ -179,32 +179,46 @@ addEventListener('resize', resize); resize();
 function burst(color) {
   const r = tile.getBoundingClientRect();
   const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-  const cols = [color, '#39FF88', '#22D3EE', '#FF4DDB', '#FFC933'];
+  const cols = [color, '#FF4D5E', '#2EE59D', '#FFD43D', '#FFFFFF'];
+  const kinds = ['flake', 'star', 'dot', 'flake', 'dot'];
   for (let k = 0; k < 70; k++) {
     const a = Math.random() * Math.PI * 2, v = 2 + Math.random() * 9;
     // 数字を隠さないようタイルの外周から外へ飛ばす
-    parts.push({ x: cx + Math.cos(a) * r.width / 2, y: cy + Math.sin(a) * r.height / 2, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: 3 + Math.random() * 7,
-      c: cols[k % cols.length], life: 0 });
+    parts.push({ x: cx + Math.cos(a) * r.width / 2, y: cy + Math.sin(a) * r.height / 2, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+      r: 4 + Math.random() * 7, c: cols[k % cols.length], kind: kinds[k % kinds.length], rot: 0, vr: Math.random() * .2 - .1, life: 0 });
+  }
+  for (let k = 0; k < 50; k++) { // 雪のバースト: 約2秒、上から速く降る
+    parts.push({ x: Math.random() * innerWidth, y: -10 - Math.random() * 100, vx: Math.random() * 2 - 1, vy: 5 + Math.random() * 4,
+      r: 3 + Math.random() * 4, c: '#FFFFFF', kind: 'flake', snow: true, rot: 0, vr: Math.random() * .1 - .05, life: 0 });
   }
   if (!fxRunning) { fxRunning = true; requestAnimationFrame(frame); }
+}
+function drawPart(p) {
+  ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+  ctx.fillStyle = ctx.strokeStyle = p.c;
+  ctx.beginPath();
+  if (p.kind === 'flake') { // 6本腕の結晶
+    ctx.lineWidth = 1.5;
+    for (let a = 0; a < 3; a++) {
+      const x = Math.cos(a * Math.PI / 3) * p.r * 1.6, y = Math.sin(a * Math.PI / 3) * p.r * 1.6;
+      ctx.moveTo(-x, -y); ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  } else if (p.kind === 'star') { // 4つ角の星
+    const R = p.r * 1.6, q = p.r * .4;
+    for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, d = k % 2 ? q : R; ctx.lineTo(Math.cos(a) * d, Math.sin(a) * d); }
+    ctx.fill();
+  } else { ctx.arc(0, 0, p.r * .8, 0, Math.PI * 2); ctx.fill(); } // オーナメント玉
+  ctx.restore();
 }
 function frame() {
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   for (const p of parts) {
-    p.life++; p.x += p.vx; p.y += p.vy; p.vx *= 0.97; p.vy = p.vy * 0.97 + 0.08;
+    p.life++; p.rot += p.vr; p.x += p.vx; p.y += p.vy;
+    if (!p.snow) { p.vx *= 0.97; p.vy = p.vy * 0.97 + 0.08; }
   }
   parts = parts.filter((p) => p.life < 120); // 約2秒で消える
-  ctx.lineWidth = 2;
-  for (let i = 0; i < parts.length; i++) {
-    const p = parts[i];
-    ctx.globalAlpha = 1 - p.life / 120;
-    ctx.fillStyle = ctx.strokeStyle = p.c;
-    for (let j = i + 1; j < parts.length; j++) { // 近い粒子同士を結合線でつなぐ
-      const q = parts[j];
-      if (Math.hypot(p.x - q.x, p.y - q.y) < 60) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); }
-    }
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-  }
+  for (const p of parts) { ctx.globalAlpha = (p.snow ? .7 : 1) * (1 - p.life / 120); drawPart(p); }
   ctx.globalAlpha = 1;
   if (parts.length) requestAnimationFrame(frame);
   else { fxRunning = false; ctx.clearRect(0, 0, innerWidth, innerHeight); }
@@ -226,10 +240,20 @@ function beep(freq, dur, type = 'sine', vol = 0.15, at = 0) {
   o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur);
 }
 const tick = (f) => beep(f, 0.05, 'square', 0.06);
-function riser() { // ドラムロール風 (最後の約1秒)
-  for (let k = 0; k < 20; k++) beep(200 + k * 25, 0.05, 'triangle', 0.05 + k * 0.004, 2.0 + k * 0.05);
+function bells(at, n, gap) { // そりの鈴: 高い音を少しずらして重ねる
+  for (let k = 0; k < n; k++) [3520, 4186, 5274].forEach((f, j) => beep(f * (1 + j * .004), 0.18, 'triangle', 0.025, at + k * gap + j * .012));
 }
-function chime() { [523, 659, 784, 1047].forEach((f, k) => beep(f, 0.6, 'sine', 0.18, k * 0.09)); }
+function riser() { // ドラムロール風 + 鈴 (最後の約1秒)
+  for (let k = 0; k < 20; k++) beep(200 + k * 25, 0.05, 'triangle', 0.05 + k * 0.004, 2.0 + k * 0.05);
+  bells(0, 24, 0.12);
+}
+function bell(f, at = 0) { beep(f, 1.2, 'sine', 0.16, at); beep(f * 2.76, 1.2, 'sine', 0.04, at); } // ベル音
+function chime() {
+  [523, 659, 784, 1047].forEach((f, k) => bell(f, k * 0.09));
+  // ジングルベル冒頭 (E E E, E E E, E G C D E)、null は休符
+  [329.6, 329.6, 329.6, null, 329.6, 329.6, 329.6, null, 329.6, 392, 523.3, 587.3, 659.3]
+    .forEach((f, k) => f && beep(f, 0.2, 'triangle', 0.12, 0.5 + k * 0.18));
+}
 
 $('muteButton').addEventListener('click', () => {
   muted = !muted;

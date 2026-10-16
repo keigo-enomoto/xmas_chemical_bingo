@@ -1,8 +1,8 @@
 // 各等の設定（色は花火・紙吹雪でも使う）
 const TIERS = [
-  { name: '1等', sym: 'Au', el: '金', color: '#FFD43D', colors: ['#FFD43D', '#FFE98A', '#FFB800', '#FFFFFF'], burst: 260, waves: 3, rain: 4600 },
-  { name: '2等', sym: 'Ag', el: '銀', color: '#22D3EE', colors: ['#22D3EE', '#9BEFFF', '#FFFFFF'], burst: 140, waves: 2, rain: 1400 },
-  { name: '3等', sym: 'Cu', el: '銅', color: '#FF4DDB', colors: ['#FF4DDB', '#FFA3EE', '#FFFFFF'], burst: 70, waves: 1, rain: 0 },
+  { name: '1等', sym: 'Au', el: '金', color: '#FFD43D', colors: ['#FFD43D', '#FFE98A', '#FF4D5E', '#2EE59D', '#FFFFFF'], burst: 260, waves: 3, rain: 4600 },
+  { name: '2等', sym: 'Ag', el: '銀', color: '#9BE7FF', colors: ['#9BE7FF', '#FFFFFF', '#2EE59D', '#FF4D5E'], burst: 140, waves: 2, rain: 1400 },
+  { name: '3等', sym: 'Cu', el: '銅', color: '#FF4D5E', colors: ['#FF4D5E', '#FF9AA4', '#2EE59D', '#FFFFFF'], burst: 70, waves: 1, rain: 0 },
 ];
 const MAX_COUNT = 999;   // 1等あたりの上限（候補配列が巨大にならないように）
 const MAX_BUBBLES = 30;  // 試験管内に描く泡の最大数（数字は正確に表示）
@@ -115,12 +115,25 @@ function tone(freq, at, dur, type, vol) {
   o.connect(g); g.connect(ac.destination);
   o.start(t); o.stop(t + dur + 0.02);
 }
-function drumroll() { for (let i = 0; i < 10; i++) tone(90 + i * 14, i * 0.04, 0.07, 'triangle', 0.18); }
+// ベル音：基音＋2.76倍の倍音
+function bell(freq, at, dur, vol) {
+  tone(freq, at, dur, 'sine', vol || 0.14);
+  tone(freq * 2.76, at, dur * 0.6, 'sine', (vol || 0.14) * 0.3);
+}
+// シャンシャン（高い音の細かいピン）
+function sleigh(n) { for (let i = 0; i < n; i++) tone(3800 + Math.random() * 1800, i * 0.05 + Math.random() * 0.02, 0.09, 'triangle', 0.025); }
+function drumroll() { for (let i = 0; i < 10; i++) tone(90 + i * 14, i * 0.04, 0.07, 'triangle', 0.18); sleigh(14); }
+// ジングルベルの出だし（ミミミ ミミミ ミソドレミ）
+const JINGLE = [[659, 0.18], [659, 0.18], [659, 0.36], [659, 0.18], [659, 0.18], [659, 0.36], [659, 0.18], [784, 0.18], [523, 0.27], [587, 0.09], [659, 0.6]];
 function fanfare(t) {
-  const notes = [[523, 659, 784], [523, 659, 784, 1047], [523, 659, 784, 1047, 784, 1047, 1319, 1568]][2 - t];
-  notes.forEach((f, i) => tone(f, i * 0.12, 0.35, 'square', 0.1));
-  const end = notes.length * 0.12;
-  [523, 659, 784, 1047].forEach((f) => tone(f, end, t === 0 ? 1.4 : 0.7, 'sawtooth', 0.07));
+  if (t === 0) {
+    let at = 0;
+    JINGLE.forEach(([f, d]) => { bell(f, at, 1.0, 0.13); at += d; });
+    sleigh(20);
+    return;
+  }
+  (t === 1 ? [523, 659, 784, 1047] : [659, 784]).forEach((f, i) => bell(f, i * 0.12, 1.2));
+  sleigh(t === 1 ? 10 : 4);
 }
 
 // ---------- パーティクル（全画面 canvas） ----------
@@ -138,14 +151,33 @@ function resize() {
   cv.height = innerHeight * dpr;
   cx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-function burst(x, y, tier) {
+// 粒の種類：雪の結晶・星・紙吹雪・飾りの玉
+function kindOf() { const r = Math.random(); return r < 0.35 ? 'flake' : r < 0.5 ? 'star' : r < 0.7 ? 'rect' : 'dot'; }
+function shape(p) {
+  const s = p.size;
+  cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot);
+  if (p.kind === 'rect') cx.fillRect(-s, -s / 2, s * 2, s);
+  else if (p.kind === 'flake') { // 6本腕の結晶
+    cx.strokeStyle = p.color; cx.lineWidth = 1.5; cx.beginPath();
+    for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; cx.moveTo(0, 0); cx.lineTo(Math.cos(a) * s * 1.6, Math.sin(a) * s * 1.6); }
+    cx.stroke();
+  } else if (p.kind === 'star') { // 5角の星
+    cx.beginPath();
+    for (let k = 0; k < 10; k++) { const r = k % 2 ? s * 0.6 : s * 1.5, a = k * Math.PI / 5 - Math.PI / 2; cx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+    cx.fill();
+  } else { cx.beginPath(); cx.arc(0, 0, s / 2, 0, Math.PI * 2); cx.fill(); }
+  cx.restore();
+}
+function burst(x, y, tier, rx, ry) {
   const T = TIERS[tier];
   const n = Math.round(T.burst / T.waves);
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2;
     const s = 150 + Math.random() * 450;
-    parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, g: 600, life: 1, decay: 0.5 + Math.random() * 0.5,
-      size: 3 + Math.random() * 5, color: T.colors[i % T.colors.length], rect: Math.random() < 0.4, rot: 0, vr: Math.random() * 10 - 5 });
+    // rx,ry があれば結果文字の外周から放つ（文字を隠さない）
+    const px = rx ? x + Math.cos(a) * rx : x, py = rx ? y + Math.sin(a) * ry : y;
+    parts.push({ x: px, y: py, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, g: 600, life: 1, decay: 0.5 + Math.random() * 0.5,
+      size: 3 + Math.random() * 5, color: T.colors[i % T.colors.length], kind: kindOf(), rot: 0, vr: Math.random() * 10 - 5 });
   }
   kick();
 }
@@ -156,9 +188,9 @@ function frame(now) {
   cx.clearRect(0, 0, innerWidth, innerHeight);
   if (now < rainUntil) { // 紙吹雪の雨
     const T = TIERS[rainTier];
-    for (let i = 0; i < 4; i++) {
-      parts.push({ x: Math.random() * innerWidth, y: -10, vx: Math.random() * 80 - 40, vy: 150 + Math.random() * 200, g: 40, life: 1, decay: 0.2,
-        size: 5 + Math.random() * 6, color: T.colors[Math.floor(Math.random() * T.colors.length)], rect: true, rot: 0, vr: Math.random() * 8 - 4 });
+    for (let i = 0; i < 4; i++) { // 雪（結晶）と紙吹雪の雨＝スノーバースト
+      parts.push({ x: Math.random() * innerWidth, y: -10, vx: Math.random() * 80 - 40, vy: 250 + Math.random() * 250, g: 40, life: 1, decay: 0.2,
+        size: 5 + Math.random() * 6, color: i % 2 ? '#FFFFFF' : T.colors[Math.floor(Math.random() * T.colors.length)], kind: i % 2 ? 'flake' : 'rect', rot: 0, vr: Math.random() * 8 - 4 });
     }
   }
   parts = parts.filter((p) => p.life > 0 && p.y < innerHeight + 20);
@@ -166,8 +198,7 @@ function frame(now) {
     p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; p.life -= p.decay * dt;
     cx.globalAlpha = Math.max(0, Math.min(1, p.life * 2));
     cx.fillStyle = p.color;
-    if (p.rect) { cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillRect(-p.size, -p.size / 2, p.size * 2, p.size); cx.restore(); }
-    else { cx.beginPath(); cx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2); cx.fill(); }
+    shape(p);
   });
   cx.globalAlpha = 1;
   raf = parts.length || now < rainUntil ? requestAnimationFrame(frame) : 0; // 終わったら自動停止
@@ -184,7 +215,7 @@ function celebrate(t) {
   $('shock').style.setProperty('--c', T.color);
   restart($('shock'), 'go');
   for (let i = 0; i < T.waves; i++) {
-    setTimeout(() => burst(i ? Math.random() * innerWidth : cxp, i ? Math.random() * innerHeight * 0.6 : cyp, t), i * 400);
+    setTimeout(() => burst(i ? Math.random() * innerWidth : cxp, i ? Math.random() * innerHeight * 0.6 : cyp, t, i ? 0 : Math.min(r.width / 2, 340), r.height / 2), i * 400);
   }
   if (T.rain) { rainTier = t; rainUntil = performance.now() + T.rain; kick(); }
   if (t === 0) restart(document.body, 'quake');
@@ -234,7 +265,7 @@ function startDraw() {
       show(candidates[Math.floor(Math.random() * candidates.length)]);
       tone(380 + p * 600, 0, 0.06, 'square', 0.08); // だんだん高く
       const q = p / HOLD;
-      setTimeout(step, 50 + 400 * q * q); // 徐々に遅く
+      setTimeout(step, Math.min(50 + 400 * q * q, DURATION * (HOLD - p) + 5)); // 徐々に遅く（溜めの開始は遅らせない）
     } else {
       if (!held) { held = true; show(winner); drumroll(); }
       setTimeout(step, (1 - p) * DURATION); // 溜め：最後まで表示を止める

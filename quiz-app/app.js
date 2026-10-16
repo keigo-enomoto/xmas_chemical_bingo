@@ -60,9 +60,19 @@ function tone(freq, at, dur, type, vol) {
   o.start(t); o.stop(t + dur + 0.02);
 }
 const tick = () => tone(1500 + Math.random() * 300, 0, 0.03, 'square', 0.035);
-function jan() { [392, 523, 659].forEach((f) => tone(f, 0, 0.5, 'sawtooth', 0.07)); [523, 659, 784, 1047].forEach((f) => tone(f, 0.16, 0.9, 'sawtooth', 0.07)); }
-function drumroll() { for (let i = 0; i < 30; i++) tone(90 + i * 6, i * 0.05, 0.07, 'triangle', 0.08 + i * 0.004); }
-function chime() { [1047, 1319, 1568, 2093].forEach((f, i) => tone(f, i * 0.1, 1.2, 'sine', 0.12)); tone(523, 0, 1.2, 'triangle', 0.1); }
+// シャンシャン鈴：高い音を少しずらして重ねる
+function bells(at, n) { for (let i = 0; i < n; i++) [3520, 4186, 5274].forEach((f, k) => tone(f * (1 + k * 0.003), at + i * 0.09 + k * 0.012, 0.18, 'triangle', 0.025)); }
+const jan = () => bells(0, 4);
+function drumroll() { for (let i = 0; i < 30; i++) tone(90 + i * 6, i * 0.05, 0.07, 'triangle', 0.08 + i * 0.004); bells(0, 16); }
+// ベル音：基音＋2.76倍音
+function bell(f, at) { tone(f, at, 1.2, 'sine', 0.12); tone(f * 2.76, at, 0.6, 'sine', 0.03); }
+function chime() { bell(1047, 0); bell(1568, 0.1); bell(2093, 0.2); }
+// ジングルベルの出だし（ミミミ ミミミ ミソドレミ）
+function jingle(at) {
+  const E = 659, G = 784, C = 523, D = 587;
+  [[E, 1], [E, 1], [E, 2], [E, 1], [E, 1], [E, 2], [E, 1], [G, 1], [C, 1.5], [D, 0.5], [E, 3]]
+    .reduce((t, [f, b]) => { tone(f, at + t * 0.18, b * 0.17, 'triangle', 0.1); bell(f * 2, at + t * 0.18); return t + b; }, 0);
+}
 
 // ---------- パーティクル（全画面 canvas・答え枠の外周から外向きに） ----------
 const cv = $('fx');
@@ -70,7 +80,8 @@ const cx = cv.getContext('2d');
 let parts = [];
 let raf = 0;
 let lastT = 0;
-const COLORS = ['#FFD43D', '#FFE98A', '#22D3EE', '#FF4DDB', '#39FF88', '#FFFFFF'];
+const COLORS = ['#FFD43D', '#FF4D5E', '#2EE59D', '#FFFFFF', '#9BE7FF', '#FFE98A'];
+const KINDS = ['dot', 'rect', 'flake', 'star', 'flake'];
 
 function resize() {
   const dpr = window.devicePixelRatio || 1;
@@ -89,8 +100,29 @@ function burst(r, n) {
     const s = 200 + Math.random() * 500, spread = (Math.random() - 0.5) * 1.2;
     const a = Math.atan2(ny, nx) + spread;
     parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, g: 350, life: 1, decay: 0.45 + Math.random() * 0.4,
-      size: 3 + Math.random() * 5, color: COLORS[i % COLORS.length], rect: Math.random() < 0.4, rot: 0, vr: Math.random() * 10 - 5 });
+      size: 4 + Math.random() * 8, color: COLORS[i % COLORS.length], kind: KINDS[i % 5], rot: 0, vr: Math.random() * 10 - 5 });
   }
+  if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(frame); }
+}
+// 粒を描く：雪の結晶（6本の腕）・星（4方向のきらめき）・紙吹雪・オーナメントの丸
+function drawPart(p) {
+  const s = p.size;
+  cx.strokeStyle = p.color; cx.lineWidth = 1.5;
+  cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot);
+  if (p.kind === 'rect') cx.fillRect(-s, -s / 2, s * 2, s);
+  else if (p.kind === 'dot') { cx.beginPath(); cx.arc(0, 0, s / 2, 0, Math.PI * 2); cx.fill(); }
+  else {
+    const arms = p.kind === 'flake' ? 6 : 4;
+    cx.beginPath();
+    for (let k = 0; k < arms; k++) { const a = (k * 2 * Math.PI) / arms; cx.moveTo(0, 0); cx.lineTo(Math.cos(a) * s * 1.4, Math.sin(a) * s * 1.4); }
+    cx.stroke();
+  }
+  cx.restore();
+}
+// 雪のバースト：上から速めの雪を降らせる
+function snowBurst() {
+  for (let i = 0; i < 70; i++) parts.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * 200, vx: Math.random() * 60 - 30, vy: 250 + Math.random() * 250, g: 0,
+    life: 1, decay: 0.2, size: 3 + Math.random() * 6, color: i % 4 ? '#FFFFFF' : '#9BE7FF', kind: 'flake', rot: 0, vr: Math.random() * 4 - 2 });
   if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(frame); }
 }
 function frame(now) {
@@ -102,8 +134,7 @@ function frame(now) {
     p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; p.life -= p.decay * dt;
     cx.globalAlpha = Math.max(0, Math.min(1, p.life * 2));
     cx.fillStyle = p.color;
-    if (p.rect) { cx.save(); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillRect(-p.size, -p.size / 2, p.size * 2, p.size); cx.restore(); }
-    else { cx.beginPath(); cx.arc(p.x, p.y, p.size / 2, 0, Math.PI * 2); cx.fill(); }
+    drawPart(p);
   });
   cx.globalAlpha = 1;
   raf = parts.length ? requestAnimationFrame(frame) : 0; // 終わったら自動停止
@@ -233,7 +264,8 @@ function enterAnswer(fx) {
     $('aText').classList.add('pop');
     const f = $('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
     const s = $('shock'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go');
-    chime();
+    chime(); jingle(0.35);
+    snowBurst();
     const r = box.getBoundingClientRect();
     burst(r, 140);
     setTimeout(() => burst(box.getBoundingClientRect(), 80), 350);
@@ -247,7 +279,7 @@ function enterEnd() {
   setPrimary('最初からやり直す');
   $('announce').textContent = `おつかれさまでした。全${quiz.questions.length}問終了。`;
   afterShow();
-  if (!reduced.matches) { jan(); const r = $('end').getBoundingClientRect(); burst({ left: r.left + r.width / 2 - 150, right: r.left + r.width / 2 + 150, top: r.top + r.height * 0.3, bottom: r.top + r.height * 0.7, width: 300, height: r.height * 0.4 }, 100); }
+  if (!reduced.matches) { jingle(0); const r = $('end').getBoundingClientRect(); burst({ left: r.left + r.width / 2 - 150, right: r.left + r.width / 2 + 150, top: r.top + r.height * 0.3, bottom: r.top + r.height * 0.7, width: 300, height: r.height * 0.4 }, 100); }
 }
 
 // ---------- 進む / 戻る ----------

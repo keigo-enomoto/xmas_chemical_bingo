@@ -3,18 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LAB QUIZ | 化学クイズ</title>
+  <title>XMAS LAB QUIZ | クリスマス化学クイズ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Orbitron:wght@700;900&family=Zen+Kaku+Gothic+New:wght@400;700;900&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- 背景の泡（CSSのみ） -->
+  <!-- 背景の雪（CSSのみ） -->
   <div class="bg" aria-hidden="true">
-    <span style="left:8%;--s:26px;--d:14s;--w:0s"></span><span style="left:22%;--s:14px;--d:11s;--w:-4s"></span>
-    <span style="left:38%;--s:34px;--d:18s;--w:-9s"></span><span style="left:55%;--s:18px;--d:12s;--w:-2s"></span>
-    <span style="left:70%;--s:30px;--d:16s;--w:-7s"></span><span style="left:84%;--s:12px;--d:10s;--w:-5s"></span>
-    <span style="left:93%;--s:22px;--d:15s;--w:-11s"></span>
+    <span style="left:43%;--s:14px;--d:17s;--w:-20s;--x:-44px"></span><span style="left:11%;--s:27px;--d:12s;--w:-11s;--x:24px"></span><span style="left:9%;--s:26px;--d:14s;--w:-1s;--x:-39px"></span>
+    <span style="left:57%;--s:23px;--d:12s;--w:-7s;--x:-39px"></span><span style="left:72%;--s:23px;--d:11s;--w:-18s;--x:-35px"></span><span style="left:30%;--s:30px;--d:21s;--w:-18s;--x:-43px"></span>
+    <span style="left:75%;--s:28px;--d:17s;--w:-1s;--x:-22px"></span><span style="left:7%;--s:27px;--d:24s;--w:-4s;--x:-13px"></span><span style="left:55%;--s:14px;--d:19s;--w:-3s;--x:23px"></span>
+    <span style="left:41%;--s:27px;--d:24s;--w:-21s;--x:-27px"></span><span style="left:15%;--s:28px;--d:20s;--w:-20s;--x:-26px"></span><span style="left:49%;--s:13px;--d:19s;--w:-22s;--x:-42px"></span>
+    <span style="left:74%;--s:11px;--d:20s;--w:-6s;--x:13px"></span><span style="left:89%;--s:27px;--d:17s;--w:-10s;--x:9px"></span><span style="left:76%;--s:24px;--d:16s;--w:-9s;--x:-19px"></span>
+    <span style="left:25%;--s:17px;--d:12s;--w:-18s;--x:-12px"></span><span style="left:69%;--s:25px;--d:16s;--w:-14s;--x:-14px"></span><span style="left:79%;--s:12px;--d:12s;--w:-16s;--x:3px"></span>
+    <span style="left:23%;--s:20px;--d:13s;--w:-15s;--x:3px"></span><span style="left:7%;--s:12px;--d:23s;--w:-17s;--x:23px"></span><span style="left:42%;--s:20px;--d:22s;--w:-11s;--x:26px"></span>
+    <span style="left:65%;--s:28px;--d:23s;--w:-14s;--x:-42px"></span><span style="left:13%;--s:18px;--d:18s;--w:-22s;--x:35px"></span><span style="left:10%;--s:11px;--d:22s;--w:-22s;--x:-11px"></span>
+    <span style="left:84%;--s:28px;--d:21s;--w:-14s;--x:-14px"></span><span style="left:93%;--s:22px;--d:21s;--w:-11s;--x:-48px"></span><span style="left:61%;--s:21px;--d:13s;--w:-19s;--x:-36px"></span>
+    <span style="left:65%;--s:11px;--d:14s;--w:-9s;--x:-34px"></span><span style="left:96%;--s:17px;--d:17s;--w:-12s;--x:13px"></span><span style="left:12%;--s:15px;--d:18s;--w:-12s;--x:20px"></span>
   </div>
   <canvas id="fx" aria-hidden="true"></canvas>
   <div id="flash" aria-hidden="true"></div>
@@ -27,7 +33,7 @@
 
   <div id="app">
     <header class="top">
-      <h1><span class="en">LAB QUIZ</span><span class="ja">化学クイズ</span></h1>
+      <h1><span class="en"><i aria-hidden="true">&#9733;</i> XMAS LAB QUIZ</span><span class="ja">クリスマス化学クイズ</span></h1>
       <div class="tools">
         <button type="button" id="muteBtn" class="icon-btn" aria-pressed="false" aria-label="効果音をミュートする">🔊</button>
         <button type="button" id="fsBtn" class="icon-btn" aria-label="全画面表示に切り替える">⛶</button>
